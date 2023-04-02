@@ -35,11 +35,24 @@ public class IndexServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // TODO Auto-generated method stub
         EntityManager em = DBUtil.createEntityManager();
-        List<Message> messages =em.createNamedQuery("getAllMessages",Message.class).getResultList();
+
+        int page = 1;
+        try {
+            page = Integer.parseInt(request.getParameter("page"));
+        }catch(NumberFormatException e) {}
+        List<Message> messages =em.createNamedQuery("getAllMessages",Message.class)
+                .setFirstResult(15*(page - 1))
+                .setMaxResults(15)
+                .getResultList();
+
+        //全件数を取得
+        long message_count = (long)em.createNamedQuery("getMessagesCount", Long.class).getSingleResult();
 
         em.close();
 
         request.setAttribute("messages", messages);
+        request.setAttribute("messages_count", message_count); //全件数
+        request.setAttribute("page", page); //ページ数
 
         //フラッシュメッセージがセッションスコープにセットされていたら
         //リクエストスコープに保存する（セッションスコープからは削除）
